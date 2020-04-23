@@ -1,0 +1,3 @@
+﻿  main.cpp
+C:\Users\a\source\repos\UPDtestclient\UPDtestclient\main.cpp(10,1): warning C4326: return type of 'main' should be 'int' instead of 'void'
+  UPDtestclient.vcxproj -> C:\Users\a\source\repos\UPDtestclient\Debug\UPDtestclient.exe
