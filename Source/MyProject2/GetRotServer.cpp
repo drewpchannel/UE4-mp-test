@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "GameFramework/Actor.h"
+#include "Engine/World.h"
 #include "GetRotServer.h"
 
 // Sets default values for this component's properties
@@ -29,6 +30,13 @@ void UGetRotServer::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	// get actor rotation
+	FVector MyCharacter = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+	FString PlayerVector = MyCharacter.ToString();
+	//UE_LOG(LogTemp, Warning, TEXT("Vector is: %s"), *PlayerVector);
+	// send over network
+
+	// get actor post
+	// send over net
 }
 

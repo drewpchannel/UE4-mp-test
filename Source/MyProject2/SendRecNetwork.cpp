@@ -2,9 +2,12 @@
 
 #include <iostream>
 #include <WS2tcpip.h>  //win sockets lib, this is 2.0 Beej: WSACleanup() when you’re all through with the sockets library
+#include <Windows.h>
 #include <string>
 #include "Containers/UnrealString.h"
 #include "GameFramework/Actor.h"
+#include "Components/ActorComponent.h"
+#include "Engine/World.h"
 
 #pragma comment (lib, "ws2_32.lib")
 #include "SendRecNetwork.h"
@@ -24,7 +27,19 @@ USendRecNetwork::USendRecNetwork()
 void USendRecNetwork::BeginPlay()
 {
 	Super::BeginPlay();
+	
+}
 
+
+// Called every frame
+void USendRecNetwork::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	SendData();
+}
+
+void USendRecNetwork::SendData()
+{
 	//Startup winsock
 	WSADATA data;
 	WORD version = MAKEWORD(2, 2);
@@ -52,8 +67,11 @@ void USendRecNetwork::BeginPlay()
 
 	// Write out to socket
 	//char buf[1024];
-	const char* bufmessage = "abcdefghijklmnop";
-	int sendOK = sendto(out, bufmessage, strlen(bufmessage), 0, (sockaddr*)&server, sizeof(server));
+	FVector MyCharacter = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+	const TCHAR* message = *MyCharacter.ToString();
+	char* people = TCHAR_TO_UTF8(message);
+
+	int sendOK = sendto(out, people, strlen(people), 0, (sockaddr*)&server, sizeof(server));
 
 	if (sendOK == SOCKET_ERROR)
 	{
@@ -63,13 +81,4 @@ void USendRecNetwork::BeginPlay()
 	closesocket(out);
 
 	WSACleanup();
-	
 }
-
-
-// Called every frame
-void USendRecNetwork::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
