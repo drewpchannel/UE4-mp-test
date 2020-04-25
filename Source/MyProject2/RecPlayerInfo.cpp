@@ -66,6 +66,8 @@ void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	//mayben check 1 by one if null
 	//mayeb pull this out and see if it works in just c++
 	SOCKET in = GetSocket();
+
+	//may need freeaddr function to clear up this mem
 	sockaddr_in serverHint;
 
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
@@ -74,7 +76,8 @@ void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 	if (IsSocketClosed)
 	{
-		if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR) //sockaddress (points to struct? & is like obj.serverHint?)
+		int BindErrors = bind(in, (sockaddr*)&serverHint, sizeof(serverHint));
+		if (BindErrors == 0) //sockaddress (points to struct? & is like obj.serverHint?)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("failed to socket"));
 		}
