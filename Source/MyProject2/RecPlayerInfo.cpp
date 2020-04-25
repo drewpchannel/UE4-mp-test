@@ -6,6 +6,9 @@
 
 #include "RecPlayerInfo.h"
 
+//find way to check if socket is open in the function
+bool IsSocketClosed = true;
+
 URecPlayerInfo::URecPlayerInfo()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -15,42 +18,54 @@ URecPlayerInfo::URecPlayerInfo()
 void URecPlayerInfo::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	closesocket(GetSocket());
+
 }
 
 void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	//Startup winsock
+
+	//mayben check 1 by one if null
+	//mayeb pull this out and see if it works in just c++
+	SOCKET in = GetSocket();
+	sockaddr_in serverHint;
+
+	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
+	serverHint.sin_family = AF_INET; // Address format is IPv4
+	serverHint.sin_port = htons(53900); // Convert from little to big endian
+
+	if (IsSocketClosed)
+	{
+		if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR) //sockaddress (points to struct? & is like obj.serverHint?)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("failed to socket"));
+		}
+		else
+		{
+			//StartDataStream(in);
+			IsSocketClosed = false;
+			UE_LOG(LogTemp, Warning, TEXT("socket open"));
+		}
+	}
+}
+
+SOCKET URecPlayerInfo::GetSocket()
+{
 	WSADATA data;
 	WORD version = MAKEWORD(2, 2);
 	int wSOk = WSAStartup(version, &data);
-	if (wSOk != 0) 
+	if (wSOk != 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WSA error"));
 	} //needs the data behind WSADATA data; info found in docs for ws2_32
 	SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
 
-	sockaddr_in serverHint;
-
-	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
-	serverHint.sin_family = AF_INET; // Address format is IPv4
-	serverHint.sin_port = htons(54300); // Convert from little to big endian
-
-	//mayben check 1 by one if null
-	//mayeb pull this out and see if it works in just c++
-	if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR) //sockaddress (points to struct? & is like obj.serverHint?)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("failed to socket"));
-	}
-	else
-	{
-		//StartDataStream(in);
-		UE_LOG(LogTemp, Warning, TEXT("socket open"));
-	}
+	return in;
 }
 
-void StartDataStream(SOCKET in)
+void URecPlayerInfo::StartDataStream(SOCKET in)
 {
 	sockaddr_in client;
 	int clientLength = sizeof(client);

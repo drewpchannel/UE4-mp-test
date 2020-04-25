@@ -1,5 +1,4 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "RecPlayerInfo.generated.h"
@@ -17,6 +16,8 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual SOCKET GetSocket();
+	virtual void StartDataStream(SOCKET in);
 
 public:	
 	// Called every frame
