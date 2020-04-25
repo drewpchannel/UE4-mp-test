@@ -1,13 +1,52 @@
+#include "RecPlayerInfo.h"
 #include <iostream>
 #include "CoreMinimal.h"
 #include <WS2tcpip.h>  //win sockets lib, this is 2.0 Beej: WSACleanup() when you’re all through with the sockets library
 
 #pragma comment (lib, "ws2_32.lib")
 
-#include "RecPlayerInfo.h"
-
 //find way to check if socket is open in the function
-bool IsSocketClosed = true;
+//bool IsSocketClosed = true;
+
+SOCKET URecPlayerInfo::GetSocket()
+{ /*
+	WSADATA data;
+	WORD version = MAKEWORD(2, 2);
+	int wSOk = WSAStartup(version, &data);
+	if (wSOk != 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WSA error"));
+	} //needs the data behind WSADATA data; info found in docs for ws2_32
+	SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
+
+	return in;
+	*/
+}
+
+//void URecPlayerInfo::StartDataStream(SOCKET in)
+/*
+{
+	sockaddr_in client;
+	int clientLength = sizeof(client);
+	ZeroMemory(&client, clientLength);  //replaces everything in memory as 0
+	char buf[2048];
+	ZeroMemory(buf, 2048);  //clears buffer when trying to receive again
+
+	int bytesIn = recvfrom(in, buf, 2048, 0, (sockaddr*)&client, &clientLength);
+	if (bytesIn == SOCKET_ERROR)
+	{
+	}
+	char ClientIP[256];
+	ZeroMemory(ClientIP, 256);
+	inet_ntop(AF_INET, &client.sin_addr, ClientIP, 256);  //INT family comes from the struct ws2
+
+	//check if its a new client, intro message
+	//removed check for serverjoin
+
+	FString myString(buf);
+	UE_LOG(LogTemp, Warning, TEXT("Information recieved: %s \n"), *myString);
+}
+*/
 
 URecPlayerInfo::URecPlayerInfo()
 {
@@ -18,13 +57,14 @@ URecPlayerInfo::URecPlayerInfo()
 void URecPlayerInfo::BeginPlay()
 {
 	Super::BeginPlay();
-	closesocket(GetSocket());
+	//closesocket(GetSocket());
 
 }
 
 void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	/*
 	//Startup winsock
 
 	//mayben check 1 by one if null
@@ -49,41 +89,5 @@ void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 			UE_LOG(LogTemp, Warning, TEXT("socket open"));
 		}
 	}
-}
-
-SOCKET URecPlayerInfo::GetSocket()
-{
-	WSADATA data;
-	WORD version = MAKEWORD(2, 2);
-	int wSOk = WSAStartup(version, &data);
-	if (wSOk != 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("WSA error"));
-	} //needs the data behind WSADATA data; info found in docs for ws2_32
-	SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
-
-	return in;
-}
-
-void URecPlayerInfo::StartDataStream(SOCKET in)
-{
-	sockaddr_in client;
-	int clientLength = sizeof(client);
-	ZeroMemory(&client, clientLength);  //replaces everything in memory as 0
-	char buf[2048];
-	ZeroMemory(buf, 2048);  //clears buffer when trying to receive again
-
-	int bytesIn = recvfrom(in, buf, 2048, 0, (sockaddr*)&client, &clientLength);
-	if (bytesIn == SOCKET_ERROR)
-	{
-	}
-	char ClientIP[256];
-	ZeroMemory(ClientIP, 256);
-	inet_ntop(AF_INET, &client.sin_addr, ClientIP, 256);  //INT family comes from the struct ws2
-
-	//check if its a new client, intro message
-	//removed check for serverjoin
-
-	FString myString(buf);
-	UE_LOG(LogTemp, Warning, TEXT("Information recieved: %s \n"), *myString);
+	*/
 }

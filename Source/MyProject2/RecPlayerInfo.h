@@ -12,12 +12,12 @@ class MYPROJECT2_API URecPlayerInfo : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	URecPlayerInfo();
+	//GetSocket();
+	//StartDataStream(SOCKET in);
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	virtual SOCKET GetSocket();
-	virtual void StartDataStream(SOCKET in);
 
 public:	
 	// Called every frame
