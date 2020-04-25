@@ -6,10 +6,10 @@
 #pragma comment (lib, "ws2_32.lib")
 
 //find way to check if socket is open in the function
-//bool IsSocketClosed = true;
+bool IsSocketClosed = true;
 
 SOCKET URecPlayerInfo::GetSocket()
-{ /*
+{
 	WSADATA data;
 	WORD version = MAKEWORD(2, 2);
 	int wSOk = WSAStartup(version, &data);
@@ -20,11 +20,9 @@ SOCKET URecPlayerInfo::GetSocket()
 	SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
 
 	return in;
-	*/
 }
 
-//void URecPlayerInfo::StartDataStream(SOCKET in)
-/*
+void URecPlayerInfo::StartDataStream(SOCKET in)
 {
 	sockaddr_in client;
 	int clientLength = sizeof(client);
@@ -46,7 +44,6 @@ SOCKET URecPlayerInfo::GetSocket()
 	FString myString(buf);
 	UE_LOG(LogTemp, Warning, TEXT("Information recieved: %s \n"), *myString);
 }
-*/
 
 URecPlayerInfo::URecPlayerInfo()
 {
@@ -64,7 +61,6 @@ void URecPlayerInfo::BeginPlay()
 void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	/*
 	//Startup winsock
 
 	//mayben check 1 by one if null
@@ -74,7 +70,7 @@ void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
-	serverHint.sin_port = htons(53900); // Convert from little to big endian
+	serverHint.sin_port = htons(52900); // Convert from little to big endian
 
 	if (IsSocketClosed)
 	{
@@ -82,12 +78,13 @@ void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		{
 			UE_LOG(LogTemp, Warning, TEXT("failed to socket"));
 		}
+		/*
 		else
 		{
-			//StartDataStream(in);
+			StartDataStream(in);
 			IsSocketClosed = false;
 			UE_LOG(LogTemp, Warning, TEXT("socket open"));
 		}
+		*/
 	}
-	*/
 }

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include <WS2tcpip.h>
+#pragma comment (lib, "ws2_32.lib")
 #include "RecPlayerInfo.generated.h"
 
 
@@ -12,8 +14,8 @@ class MYPROJECT2_API URecPlayerInfo : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	URecPlayerInfo();
-	//GetSocket();
-	//StartDataStream(SOCKET in);
+	SOCKET GetSocket();
+	void StartDataStream(SOCKET in);
 
 protected:
 	// Called when the game starts
