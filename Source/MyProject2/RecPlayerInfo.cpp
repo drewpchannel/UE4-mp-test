@@ -81,13 +81,11 @@ void URecPlayerInfo::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		{
 			UE_LOG(LogTemp, Warning, TEXT("failed to socket"));
 		}
-		/*
 		else
 		{
 			StartDataStream(in);
 			IsSocketClosed = false;
 			UE_LOG(LogTemp, Warning, TEXT("socket open"));
 		}
-		*/
 	}
 }
