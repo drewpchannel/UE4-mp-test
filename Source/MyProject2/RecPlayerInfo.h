@@ -14,8 +14,7 @@ class MYPROJECT2_API URecPlayerInfo : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	URecPlayerInfo();
-	SOCKET GetSocket();
-	void StartDataStream(SOCKET in);
+	void StartDataStream();
 
 protected:
 	// Called when the game starts
