@@ -75,7 +75,7 @@ void PrimeSearchTask::DoWork()
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
 	//debug to display port for checking on netstat
-	u_short PortNumber = 12944;
+	u_short PortNumber = 12921;
 	int PortNumberInt = (int)PortNumber;
 	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
 
@@ -84,10 +84,11 @@ void PrimeSearchTask::DoWork()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can't bind socket! Attempting to close. Error code %i \n"), WSAGetLastError());
 		closesocket(in);
+		WSACleanup();
 		UE_LOG(LogTemp, Warning, TEXT("Tried to close socket %i"), PortNumberInt);
 		if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Socket still in use or not opened, aborting"));
+			UE_LOG(LogTemp, Warning, TEXT("Socket still in use or not opened, wsacleanup might need to rebuild something.... idk aborting"));
 			return;
 		}
 	}
@@ -117,7 +118,7 @@ void PrimeSearchTask::DoWork()
 		// Convert from byte array to chars
 		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
 		// Display the message / who sent it
-		UE_LOG(LogTemp, Warning, TEXT("Message recv from client test: %s"), *buf);
+		UE_LOG(LogTemp, Log, TEXT("%s"), UTF8_TO_TCHAR(buf));
 	}
 }
 
