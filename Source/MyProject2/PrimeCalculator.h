@@ -24,10 +24,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void RunPrimeTask(int32 NumPrimes);
+	void RunPrimeTask();
 
 	UFUNCTION(BlueprintCallable)
-	void RunPrimeTaskOnMain(int32 NumPrimes);
+	void RunPrimeTaskOnMain();
 
 };
 
@@ -36,7 +36,7 @@ public:
 class PrimeSearchTask : public FNonAbandonableTask
 {
 public:
-	PrimeSearchTask(int32 _primeCount);
+	PrimeSearchTask();
 	//destructor used for manual memory cleaning for things outside ue4 scope
 	//auto call when task ends i guess
 	~PrimeSearchTask();

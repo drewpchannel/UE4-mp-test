@@ -1,5 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+#include <iostream>
+#include <WS2tcpip.h>
 
+// Include the Winsock library (lib) file
+#pragma comment (lib, "ws2_32.lib")
 
 #include "PrimeCalculator.h"
 
@@ -12,7 +16,7 @@ APrimeCalculator::APrimeCalculator()
 void APrimeCalculator::BeginPlay()
 {
 	Super::BeginPlay();
-	RunPrimeTask(50000);
+	RunPrimeTask();
 }
 
 void APrimeCalculator::Tick(float DeltaTime)
@@ -21,15 +25,15 @@ void APrimeCalculator::Tick(float DeltaTime)
 
 }
 
-void APrimeCalculator::RunPrimeTask(int32 NumPrimes)
+void APrimeCalculator::RunPrimeTask()
 {
-	(new FAutoDeleteAsyncTask<PrimeSearchTask>(NumPrimes))->StartBackgroundTask();
+	(new FAutoDeleteAsyncTask<PrimeSearchTask>())->StartBackgroundTask();
 }
 
 //broken example to freeze game because it is run on the games thread
-void APrimeCalculator::RunPrimeTaskOnMain(int32 NumPrimes)
+void APrimeCalculator::RunPrimeTaskOnMain()
 {
-	PrimeSearchTask* task = new PrimeSearchTask(NumPrimes);
+	PrimeSearchTask* task = new PrimeSearchTask();
 
 	task->DoWorkMain();
 
@@ -38,9 +42,8 @@ void APrimeCalculator::RunPrimeTaskOnMain(int32 NumPrimes)
 
 //============
 
-PrimeSearchTask::PrimeSearchTask(int32 _primeCount)
+PrimeSearchTask::PrimeSearchTask()
 {
-	PrimesCount = _primeCount;
 }
 //destructor used for manual memory cleaning for things outside ue4 scope
 //gets called by FAutoDeleteAsync
@@ -54,27 +57,67 @@ void PrimeSearchTask::DoWork()
 	int primesFound = 0;
 	int CurrentTestNumber = 2;
 
-	while (primesFound < PrimesCount)
+	WSADATA data;
+	WORD version = MAKEWORD(2, 2);
+
+	// Start WinSock
+	int wsOk = WSAStartup(version, &data);
+	if (wsOk != 0)
 	{
-		bool isPrime = true;
-		for (int i = 2; i < CurrentTestNumber / 2; i++)
+		UE_LOG(LogTemp, Warning, TEXT("Can't start Winsock! %i"), wsOk);
+		return;
+	}
+
+	SOCKET in = socket(AF_INET, SOCK_DGRAM, 0);
+
+	// Create a server hint structure for the server
+	sockaddr_in serverHint;
+	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
+	serverHint.sin_family = AF_INET; // Address format is IPv4
+	//debug to display port for checking on netstat
+	u_short PortNumber = 12944;
+	int PortNumberInt = (int)PortNumber;
+	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
+
+	// Try and bind the socket to the IP and port
+	if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't bind socket! Attempting to close. Error code %i \n"), WSAGetLastError());
+		closesocket(in);
+		UE_LOG(LogTemp, Warning, TEXT("Tried to close socket %i"), PortNumberInt);
+		if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
 		{
-			if (CurrentTestNumber % i == 0)
-			{
-				isPrime = false;
-				break;
-			}
+			UE_LOG(LogTemp, Warning, TEXT("Socket still in use or not opened, aborting"));
+			return;
 		}
-		if (isPrime)
+	}
+
+	sockaddr_in client; // Use to hold the client information (port / ip address)
+	int clientLength = sizeof(client); // The size of the client information
+
+	char buf[1024];
+	for (int p = 10; p > 1; p++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("listening..."));
+		ZeroMemory(&client, clientLength); // Clear the client structure
+		ZeroMemory(buf, 1024); // Clear the receive buffer
+
+		// Wait for message
+		int bytesIn = recvfrom(in, buf, 1024, 0, (sockaddr*)&client, &clientLength);
+		if (bytesIn == SOCKET_ERROR)
 		{
-			primesFound++;
-			
-			if (primesFound % 1000 == 0)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Primes Found: %i"), primesFound);
-			}
+			UE_LOG(LogTemp, Warning, TEXT("Error receiving from client %i"), WSAGetLastError());
+			continue;
 		}
-		CurrentTestNumber++;
+
+		// Display message and client info
+		char clientIp[256]; // Create enough space to convert the address byte array
+		ZeroMemory(clientIp, 256); // to string of characters
+
+		// Convert from byte array to chars
+		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
+		// Display the message / who sent it
+		UE_LOG(LogTemp, Warning, TEXT("Message recv from client test: %s"), *buf);
 	}
 }
 
