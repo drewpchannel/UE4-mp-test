@@ -75,7 +75,7 @@ void PrimeSearchTask::DoWork()
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
 	//debug to display port for checking on netstat
-	u_short PortNumber = 12921;
+	u_short PortNumber = 12899; //catch
 	int PortNumberInt = (int)PortNumber;
 	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
 
