@@ -4,53 +4,44 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PrimeCalculator.generated.h"
+#include "NetworkRec.generated.h"
 
 UCLASS()
-class MYPROJECT2_API APrimeCalculator : public AActor
+class MYPROJECT2_API ANetworkRec : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
-	APrimeCalculator();
+	ANetworkRec();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void RunPrimeTask();
-
-	UFUNCTION(BlueprintCallable)
-	void RunPrimeTaskOnMain();
-
+		void RunPrimeTask();
 };
 
 //=========
 
-class PrimeSearchTask : public FNonAbandonableTask
+class NewPrimeSearchTask : public FNonAbandonableTask
 {
 public:
-	PrimeSearchTask();
+	NewPrimeSearchTask();
 	//destructor used for manual memory cleaning for things outside ue4 scope
 	//auto call when task ends i guess
-	~PrimeSearchTask();
+	~NewPrimeSearchTask();
 
 	//req ue4
 	FORCEINLINE TStatId GetStatId() const
 	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(PrimeSearchTask, STATGROUP_ThreadPoolAsyncTasks);
+		RETURN_QUICK_DECLARE_CYCLE_STAT(NewPrimeSearchTask, STATGROUP_ThreadPoolAsyncTasks);
 	}
 
-	int32 PrimesCount;
-
 	void DoWork();
-
-	//test to check if non threading slows your game
-	void DoWorkMain();
 };

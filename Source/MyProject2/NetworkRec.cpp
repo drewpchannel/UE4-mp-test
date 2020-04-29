@@ -5,57 +5,45 @@
 // Include the Winsock library (lib) file
 #pragma comment (lib, "ws2_32.lib")
 
-#include "PrimeCalculator.h"
+#include "NetworkRec.h"
 
-APrimeCalculator::APrimeCalculator()
+ANetworkRec::ANetworkRec()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 }
 
-void APrimeCalculator::BeginPlay()
+void ANetworkRec::BeginPlay()
 {
 	Super::BeginPlay();
 	RunPrimeTask();
 }
 
-void APrimeCalculator::Tick(float DeltaTime)
+void ANetworkRec::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-void APrimeCalculator::RunPrimeTask()
+void ANetworkRec::RunPrimeTask()
 {
-	(new FAutoDeleteAsyncTask<PrimeSearchTask>())->StartBackgroundTask();
-}
-
-//broken example to freeze game because it is run on the games thread
-void APrimeCalculator::RunPrimeTaskOnMain()
-{
-	PrimeSearchTask* task = new PrimeSearchTask();
-
-	task->DoWorkMain();
-
-	delete task;
+	(new FAutoDeleteAsyncTask<NewPrimeSearchTask>())->StartBackgroundTask();
 }
 
 //============
 
-PrimeSearchTask::PrimeSearchTask()
+NewPrimeSearchTask::NewPrimeSearchTask()
 {
 }
 //destructor used for manual memory cleaning for things outside ue4 scope
 //gets called by FAutoDeleteAsync
-PrimeSearchTask::~PrimeSearchTask()
+NewPrimeSearchTask::~NewPrimeSearchTask()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Task finished"));
 }
 
-void PrimeSearchTask::DoWork() 
+void NewPrimeSearchTask::DoWork()
 {
-	int primesFound = 0;
-	int CurrentTestNumber = 2;
 
 	WSADATA data;
 	WORD version = MAKEWORD(2, 2);
@@ -120,9 +108,4 @@ void PrimeSearchTask::DoWork()
 		// Display the message / who sent it
 		UE_LOG(LogTemp, Log, TEXT("%s"), UTF8_TO_TCHAR(buf));
 	}
-}
-
-void PrimeSearchTask::DoWorkMain()
-{
-	DoWork();
 }
