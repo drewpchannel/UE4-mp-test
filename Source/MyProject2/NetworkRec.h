@@ -36,6 +36,8 @@ public:
 	//destructor used for manual memory cleaning for things outside ue4 scope
 	//auto call when task ends i guess
 	~NewPrimeSearchTask();
+	void ConvertMessage(char buf[1024]);
+	void ApplyToActors(FRotator NewRotation);
 
 	//req ue4
 	FORCEINLINE TStatId GetStatId() const

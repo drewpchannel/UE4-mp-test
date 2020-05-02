@@ -1,11 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include <iostream>
+#include <stdio.h>
 #include <WS2tcpip.h>
+#include <tchar.h>
+#include "EngineUtils.h"
+#include <string>
+
+using namespace std;
 
 // Include the Winsock library (lib) file
 #pragma comment (lib, "ws2_32.lib")
 
 #include "NetworkRec.h"
+
+TCHAR GetBuf[1024];
 
 ANetworkRec::ANetworkRec()
 {
@@ -22,6 +30,7 @@ void ANetworkRec::BeginPlay()
 void ANetworkRec::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//GetActors();
 
 }
 
@@ -63,7 +72,7 @@ void NewPrimeSearchTask::DoWork()
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
 	//debug to display port for checking on netstat
-	u_short PortNumber = 12899; //catch
+	u_short PortNumber = 12879; //catch
 	int PortNumberInt = (int)PortNumber;
 	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
 
@@ -106,6 +115,29 @@ void NewPrimeSearchTask::DoWork()
 		// Convert from byte array to chars
 		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
 		// Display the message / who sent it
+		NewPrimeSearchTask::ConvertMessage(buf);
 		UE_LOG(LogTemp, Log, TEXT("%s"), UTF8_TO_TCHAR(buf));
+	}
+}
+
+void NewPrimeSearchTask::ConvertMessage(char buf[1024])
+{
+	FVector IncomingVector;
+	IncomingVector.InitFromString(buf);
+	ApplyToActors(FRotator(IncomingVector.X, IncomingVector.Y, IncomingVector.Z));
+}
+
+void ApplyToActors(FRotator NewRotation)
+{
+	TArray<AActor> actors;
+
+	for (TObjectIterator<AActor> Itr; Itr; ++Itr)
+	{
+		if (Itr->ActorHasTag(TEXT("NetworkedPlayer")))
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("tag found... applying rotation"));
+			FQuat QuatRotation = FQuat(NewRotation);
+			Itr->AddActorLocalRotation(QuatRotation, false, 0, ETeleportType::None);
+		}
 	}
 }
