@@ -137,7 +137,7 @@ void NewPrimeSearchTask::ApplyToActors(FRotator NewRotation)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("tag found... applying rotation"));
 			FQuat QuatRotation = FQuat(NewRotation);
-			Itr->AddActorLocalRotation(QuatRotation, false, 0, ETeleportType::None);
+			Itr->SetActorRotation(QuatRotation, ETeleportType::None);
 		}
 	}
 }
