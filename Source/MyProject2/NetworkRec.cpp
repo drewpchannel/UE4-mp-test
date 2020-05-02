@@ -72,14 +72,14 @@ void NewPrimeSearchTask::DoWork()
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
 	//debug to display port for checking on netstat
-	u_short PortNumber = 12879; //catch
+	u_short PortNumber = 12873; //catch
 	int PortNumberInt = (int)PortNumber;
 	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
 
 	// Try and bind the socket to the IP and port
 	if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can't bind socket! Attempting to close. Error code %i \n"), WSAGetLastError());
+		UE_LOG(LogTemp, Warning, TEXT("AAA Can't bind socket! Attempting to close. Error code %i \n"), WSAGetLastError());
 		closesocket(in);
 		WSACleanup();
 		UE_LOG(LogTemp, Warning, TEXT("Tried to close socket %i"), PortNumberInt);
@@ -96,7 +96,7 @@ void NewPrimeSearchTask::DoWork()
 	char buf[1024];
 	for (int p = 10; p > 1; p++)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("listening..."));
+		//UE_LOG(LogTemp, Warning, TEXT("listening..."));
 		ZeroMemory(&client, clientLength); // Clear the client structure
 		ZeroMemory(buf, 1024); // Clear the receive buffer
 
@@ -116,7 +116,7 @@ void NewPrimeSearchTask::DoWork()
 		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
 		// Display the message / who sent it
 		NewPrimeSearchTask::ConvertMessage(buf);
-		UE_LOG(LogTemp, Log, TEXT("%s"), UTF8_TO_TCHAR(buf));
+		//UE_LOG(LogTemp, Log, TEXT("%s"), UTF8_TO_TCHAR(buf));
 	}
 }
 
@@ -124,10 +124,10 @@ void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 {
 	FVector IncomingVector;
 	IncomingVector.InitFromString(buf);
-	ApplyToActors(FRotator(IncomingVector.X, IncomingVector.Y, IncomingVector.Z));
+	ApplyToActors(IncomingVector);
 }
 
-void NewPrimeSearchTask::ApplyToActors(FRotator NewRotation)
+void NewPrimeSearchTask::ApplyToActors(FVector NewRotation)
 {
 	TArray<AActor> actors;
 
@@ -136,8 +136,12 @@ void NewPrimeSearchTask::ApplyToActors(FRotator NewRotation)
 		if (Itr->ActorHasTag(TEXT("NetworkedPlayer")))
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("tag found... applying rotation"));
-			FQuat QuatRotation = FQuat(NewRotation);
-			Itr->SetActorRotation(QuatRotation, ETeleportType::None);
+			UE_LOG(LogTemp, Warning, TEXT("original location Z %i"), NewRotation.Z);
+			NewRotation.Z += 115.f;
+			UE_LOG(LogTemp, Warning, TEXT("new location Z %i"), NewRotation.Z);
+			Itr->SetActorLocation(NewRotation);
+			FQuat NewDirection = FQuat(NewRotation, 0.f);
+			Itr->SetActorRotation(NewDirection, ETeleportType::None);
 		}
 	}
 }
