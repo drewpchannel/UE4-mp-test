@@ -127,7 +127,7 @@ void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 	ApplyToActors(FRotator(IncomingVector.X, IncomingVector.Y, IncomingVector.Z));
 }
 
-void ApplyToActors(FRotator NewRotation)
+void NewPrimeSearchTask::ApplyToActors(FRotator NewRotation)
 {
 	TArray<AActor> actors;
 
