@@ -37,7 +37,8 @@ public:
 	//auto call when task ends i guess
 	~NewPrimeSearchTask();
 	void ConvertMessage(char buf[1024]);
-	void ApplyToActors(FVector NewRotation);
+	void FindActors(FVector NewRotation);
+	void ApplyToActors(FVector NewRotation, AActor *FoundActors);
 
 	//req ue4
 	FORCEINLINE TStatId GetStatId() const

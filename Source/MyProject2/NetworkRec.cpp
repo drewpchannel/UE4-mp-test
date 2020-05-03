@@ -4,6 +4,7 @@
 #include <WS2tcpip.h>
 #include <tchar.h>
 #include "EngineUtils.h"
+#include "Engine/World.h"
 #include <string>
 
 using namespace std;
@@ -72,14 +73,14 @@ void NewPrimeSearchTask::DoWork()
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
 	//debug to display port for checking on netstat
-	u_short PortNumber = 12873; //catch
+	u_short PortNumber = 12773; //catch
 	int PortNumberInt = (int)PortNumber;
 	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
 
 	// Try and bind the socket to the IP and port
 	if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AAA Can't bind socket! Attempting to close. Error code %i \n"), WSAGetLastError());
+		UE_LOG(LogTemp, Warning, TEXT("Can't bind socket! Attempting to close. Error code %i \n"), WSAGetLastError());
 		closesocket(in);
 		WSACleanup();
 		UE_LOG(LogTemp, Warning, TEXT("Tried to close socket %i"), PortNumberInt);
@@ -123,11 +124,20 @@ void NewPrimeSearchTask::DoWork()
 void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 {
 	FVector IncomingVector;
-	IncomingVector.InitFromString(buf);
-	ApplyToActors(IncomingVector);
+	char CheckJoinMsg[] = "serverjoin";
+	if (strcmp(buf, CheckJoinMsg) == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("serverjin found, changing to 0s"));
+		IncomingVector = FVector(0.f, 0.f, 0.f);
+	}
+	else
+	{
+		IncomingVector.InitFromString(buf);
+	}
+	FindActors(IncomingVector);
 }
 
-void NewPrimeSearchTask::ApplyToActors(FVector NewRotation)
+void NewPrimeSearchTask::FindActors(FVector NewRotation)
 {
 	TArray<AActor> actors;
 
@@ -135,13 +145,16 @@ void NewPrimeSearchTask::ApplyToActors(FVector NewRotation)
 	{
 		if (Itr->ActorHasTag(TEXT("NetworkedPlayer")))
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("tag found... applying rotation"));
-			UE_LOG(LogTemp, Warning, TEXT("original location Z %i"), NewRotation.Z);
-			NewRotation.Z += 115.f;
-			UE_LOG(LogTemp, Warning, TEXT("new location Z %i"), NewRotation.Z);
-			Itr->SetActorLocation(NewRotation);
-			FQuat NewDirection = FQuat(NewRotation, 0.f);
-			Itr->SetActorRotation(NewDirection, ETeleportType::None);
+			AActor* node = *Itr;
+			ApplyToActors(NewRotation, node);
+			//Itr->SetActorLocation(NewRotation);
 		}
 	}
+}
+
+void NewPrimeSearchTask::ApplyToActors(FVector NewRotation, AActor *FoundActors)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AAA working on new function..."));
+	NewRotation.Z += 125.f;
+	FoundActors->SetActorLocation(NewRotation);
 }

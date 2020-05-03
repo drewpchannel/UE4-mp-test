@@ -48,7 +48,7 @@ void USendPlayerInfo::StartSocket()
 		exit(1);
 	}
 	server.sin_family = AF_INET;
-	server.sin_port = htons(12874); //send
+	server.sin_port = htons(12774); //send
 
 	inet_pton(AF_INET, "192.168.1.172", &server.sin_addr);
 	out = socket(AF_INET, SOCK_DGRAM, 0);
