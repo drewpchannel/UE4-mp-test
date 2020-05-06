@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include <iostream>
 #include <stdio.h>
+#include <conio.h>
 #include <WS2tcpip.h>
 #include <tchar.h>
 #include "EngineUtils.h"
@@ -10,11 +11,17 @@
 using namespace std;
 
 // Include the Winsock library (lib) file
+#pragma comment(lib, "user32.lib")
 #pragma comment (lib, "ws2_32.lib")
 
 #include "NetworkRec.h"
 
+#define BUF_SIZE 256
+TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
+TCHAR szMsg[] = TEXT("Message from first process.");
+
 TCHAR GetBuf[1024];
+FVector ReturnedVector;
 
 ANetworkRec::ANetworkRec()
 {
@@ -38,6 +45,22 @@ void ANetworkRec::Tick(float DeltaTime)
 void ANetworkRec::RunPrimeTask()
 {
 	(new FAutoDeleteAsyncTask<NewPrimeSearchTask>())->StartBackgroundTask();
+}
+
+void ANetworkRec::FindActors(FVector NewRotation)
+{
+	for (AActor* Actor : TActorRange<AActor>(GetWorld()))
+	{
+		if (Actor && Actor->ActorHasTag("NetworkedPlayer"))
+		{
+			//ApplyToActors(NewRotation, Actor);
+		}
+	}
+}
+
+void ANetworkRec::EmptyFunction(FVector idkwhat)
+{
+	UE_LOG(LogTemp, Warning, TEXT("empty"));
 }
 
 //============
@@ -121,6 +144,7 @@ void NewPrimeSearchTask::DoWork()
 	}
 }
 
+//trying to convert on game thread
 void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 {
 	FVector IncomingVector;
@@ -134,27 +158,44 @@ void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 	{
 		IncomingVector.InitFromString(buf);
 	}
-	FindActors(IncomingVector);
+	ReturnedVector = IncomingVector;
+	WriteSharedMem(buf);
+	//AsyncTask(ENamedThreads::GameThread, [&] {EmptyFunction(FVector(0.f,0.f,0.f)});
 }
 
-void NewPrimeSearchTask::FindActors(FVector NewRotation)
+void NewPrimeSearchTask::WriteSharedMem(char buf[1024])
 {
-	TArray<AActor> actors;
-
-	for (TObjectIterator<AActor> Itr; Itr; ++Itr)
 	{
-		if (Itr->ActorHasTag(TEXT("NetworkedPlayer")))
-		{
-			AActor* node = *Itr;
-			ApplyToActors(NewRotation, node);
-			//Itr->SetActorLocation(NewRotation);
-		}
-	}
-}
+		HANDLE hMapFile;
+		LPCTSTR pBuf;
 
-void NewPrimeSearchTask::ApplyToActors(FVector NewRotation, AActor *FoundActors)
-{
-	UE_LOG(LogTemp, Warning, TEXT("AAA working on new function..."));
-	NewRotation.Z += 125.f;
-	FoundActors->SetActorLocation(NewRotation);
+		hMapFile = CreateFileMapping(
+			INVALID_HANDLE_VALUE,    // use paging file
+			NULL,                    // default security
+			PAGE_READWRITE,          // read/write access
+			0,                       // maximum object size (high-order DWORD)
+			BUF_SIZE,                // maximum object size (low-order DWORD)
+			szName);                 // name of mapping object
+
+		if (hMapFile == NULL)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not create file mapping object %i.\n"), GetLastError());
+		}
+		pBuf = (LPTSTR)MapViewOfFile(hMapFile,   // handle to map object
+			FILE_MAP_ALL_ACCESS, // read/write permission
+			0,
+			0,
+			BUF_SIZE);
+
+		if (pBuf == NULL)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not map view of file %i.\n"), GetLastError());
+
+			CloseHandle(hMapFile);
+		}
+		TCHAR* ConvBuf = UTF8_TO_TCHAR(buf);
+
+		CopyMemory((PVOID)pBuf, ConvBuf, (_tcslen(ConvBuf) * sizeof(TCHAR)));
+		_getch();
+	}
 }
