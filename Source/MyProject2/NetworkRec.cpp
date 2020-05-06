@@ -18,7 +18,7 @@ using namespace std;
 
 #define BUF_SIZE 256
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR szMsg[] = TEXT("Message from first process.");
+TCHAR szMsg[] = TEXT("Message from first process test2.");
 
 TCHAR GetBuf[1024];
 FVector ReturnedVector;
@@ -39,6 +39,7 @@ void ANetworkRec::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//GetActors();
+	ConvertSharedMem();
 
 }
 
@@ -53,14 +54,65 @@ void ANetworkRec::FindActors(FVector NewRotation)
 	{
 		if (Actor && Actor->ActorHasTag("NetworkedPlayer"))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("found network player"));
 			//ApplyToActors(NewRotation, Actor);
 		}
 	}
 }
 
-void ANetworkRec::EmptyFunction(FVector idkwhat)
+void ANetworkRec::ConvertSharedMem()
 {
-	UE_LOG(LogTemp, Warning, TEXT("empty"));
+	UE_LOG(LogTemp, Warning, TEXT("testing changes... running ConvShared"));
+
+	HANDLE hMapFile;
+	LPCTSTR pBuf;
+
+	hMapFile = OpenFileMapping(
+		FILE_MAP_ALL_ACCESS,   // read/write access
+		FALSE,                 // do not inherit the name
+		szName);               // name of mapping object
+
+	if (hMapFile == NULL)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not open file mapping object (%i).\n"),
+			GetLastError());
+	}
+
+	pBuf = (LPTSTR)MapViewOfFile(hMapFile, // handle to map object
+		FILE_MAP_ALL_ACCESS,  // read/write permission
+		0,
+		0,
+		BUF_SIZE);
+
+	if (pBuf == NULL)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not map view of file (%d).\n"),
+			GetLastError());
+
+		CloseHandle(hMapFile);
+	}
+
+	MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
+
+	UnmapViewOfFile(pBuf);
+
+	CloseHandle(hMapFile);
+
+
+	/*
+	FVector IncomingVector;
+	char CheckJoinMsg[] = "serverjoin";
+	if (strcmp(buf, CheckJoinMsg) == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("serverjin found, changing to 0s"));
+		IncomingVector = FVector(0.f, 0.f, 0.f);
+	}
+	else
+	{
+		IncomingVector.InitFromString(buf);
+	}
+	ReturnedVector = IncomingVector;
+	*/
 }
 
 //============

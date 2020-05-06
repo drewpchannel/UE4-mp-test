@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	ANetworkRec();
 	void FindActors(FVector NewRotation);
-	void EmptyFunction(FVector idkwhat);
+	void ConvertSharedMem();
 
 protected:
 	// Called when the game starts or when spawned
