@@ -14,7 +14,7 @@ class MYPROJECT2_API ANetworkRec : public AActor
 public:
 	// Sets default values for this actor's properties
 	ANetworkRec();
-	void FindActors(FVector NewRotation);
+	void FindActors();
 	void ConvertSharedMem();
 
 protected:

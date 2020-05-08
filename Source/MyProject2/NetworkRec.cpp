@@ -19,6 +19,7 @@ using namespace std;
 #define BUF_SIZE 256
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR szMsg[] = TEXT("Message from first process test2.");
+wstring bobby;
 
 TCHAR GetBuf[1024];
 FVector ReturnedVector;
@@ -48,22 +49,25 @@ void ANetworkRec::RunPrimeTask()
 	(new FAutoDeleteAsyncTask<NewPrimeSearchTask>())->StartBackgroundTask();
 }
 
-void ANetworkRec::FindActors(FVector NewRotation)
+void ANetworkRec::FindActors()
 {
 	for (AActor* Actor : TActorRange<AActor>(GetWorld()))
 	{
 		if (Actor && Actor->ActorHasTag("NetworkedPlayer"))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("found network player"));
-			//ApplyToActors(NewRotation, Actor);
+			FVector ServerVector;
+			string InitString(bobby.begin(), bobby.end());
+			FString FInitString = UTF8_TO_TCHAR(InitString.c_str());
+			ServerVector.InitFromString(FInitString);
+			ServerVector.Z += 110.f;
+			Actor->SetActorLocation(ServerVector);
 		}
 	}
 }
 
 void ANetworkRec::ConvertSharedMem()
 {
-	UE_LOG(LogTemp, Warning, TEXT("testing changes... running ConvShared"));
-
 	HANDLE hMapFile;
 	LPCTSTR pBuf;
 
@@ -74,7 +78,7 @@ void ANetworkRec::ConvertSharedMem()
 
 	if (hMapFile == NULL)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Could not open file mapping object (%i).\n"),
+		UE_LOG(LogTemp, Warning, TEXT("GT Could not open file mapping object (%i).\n"),
 			GetLastError());
 	}
 
@@ -86,34 +90,19 @@ void ANetworkRec::ConvertSharedMem()
 
 	if (pBuf == NULL)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Could not map view of file (%d).\n"),
+		UE_LOG(LogTemp, Warning, TEXT("GT Could not map view of file (%d).\n"),
 			GetLastError());
 
 		CloseHandle(hMapFile);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Game thread reads:  %s"), pBuf);
-	//MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
-
-	UnmapViewOfFile(pBuf);
-
-	CloseHandle(hMapFile);
-
-
-	/*
-	FVector IncomingVector;
-	char CheckJoinMsg[] = "serverjoin";
-	if (strcmp(buf, CheckJoinMsg) == 0)
+	//UE_LOG(LogTemp, Warning, TEXT("Game thread reads:  %s"), pBuf);
+	if (pBuf != NULL)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("serverjin found, changing to 0s"));
-		IncomingVector = FVector(0.f, 0.f, 0.f);
+		bobby = pBuf;
+		FindActors();
 	}
-	else
-	{
-		IncomingVector.InitFromString(buf);
-	}
-	ReturnedVector = IncomingVector;
-	*/
+
 }
 
 //============
@@ -247,7 +236,7 @@ void NewPrimeSearchTask::WriteSharedMem(char buf[1024])
 			CloseHandle(hMapFile);
 		}
 		TCHAR* ConvBuf = UTF8_TO_TCHAR(buf);
-
+		UE_LOG(LogTemp, Warning, TEXT("sending %s to mem"), ConvBuf);
 		CopyMemory((PVOID)pBuf, ConvBuf, (_tcslen(ConvBuf) * sizeof(TCHAR)));
 		_getch();
 	}
