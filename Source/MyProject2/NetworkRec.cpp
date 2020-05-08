@@ -92,7 +92,8 @@ void ANetworkRec::ConvertSharedMem()
 		CloseHandle(hMapFile);
 	}
 
-	MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
+	UE_LOG(LogTemp, Warning, TEXT("Game thread reads:  %s"), pBuf);
+	//MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
 
 	UnmapViewOfFile(pBuf);
 
