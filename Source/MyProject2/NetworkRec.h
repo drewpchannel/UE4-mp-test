@@ -14,7 +14,7 @@ class MYPROJECT2_API ANetworkRec : public AActor
 public:
 	// Sets default values for this actor's properties
 	ANetworkRec();
-	void FindActors();
+	void FindAndRotateNetA();
 	void ConvertSharedMem();
 
 protected:
@@ -40,9 +40,7 @@ public:
 	~NewPrimeSearchTask();
 	void ConvertMessage(char buf[1024]);
 	void WriteSharedMem(char buf[1024]);
-	//void ApplyToActors(FVector NewRotation, AActor *FoundActors);
 
-	//req ue4
 	FORCEINLINE TStatId GetStatId() const
 	{
 		RETURN_QUICK_DECLARE_CYCLE_STAT(NewPrimeSearchTask, STATGROUP_ThreadPoolAsyncTasks);

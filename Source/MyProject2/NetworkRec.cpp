@@ -17,9 +17,10 @@ using namespace std;
 #include "NetworkRec.h"
 
 #define BUF_SIZE 256
+#define PORT 12773
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR szMsg[] = TEXT("Message from first process test2.");
-wstring bobby;
+wstring ConvServerStr;
 
 TCHAR GetBuf[1024];
 FVector ReturnedVector;
@@ -39,7 +40,6 @@ void ANetworkRec::BeginPlay()
 void ANetworkRec::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//GetActors();
 	ConvertSharedMem();
 
 }
@@ -49,15 +49,14 @@ void ANetworkRec::RunPrimeTask()
 	(new FAutoDeleteAsyncTask<NewPrimeSearchTask>())->StartBackgroundTask();
 }
 
-void ANetworkRec::FindActors()
+void ANetworkRec::FindAndRotateNetA()
 {
 	for (AActor* Actor : TActorRange<AActor>(GetWorld()))
 	{
 		if (Actor && Actor->ActorHasTag("NetworkedPlayer"))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("found network player"));
 			FVector ServerVector;
-			string InitString(bobby.begin(), bobby.end());
+			string InitString(ConvServerStr.begin(), ConvServerStr.end());
 			FString FInitString = UTF8_TO_TCHAR(InitString.c_str());
 			ServerVector.InitFromString(FInitString);
 			ServerVector.Z += 110.f;
@@ -96,11 +95,10 @@ void ANetworkRec::ConvertSharedMem()
 		CloseHandle(hMapFile);
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("Game thread reads:  %s"), pBuf);
 	if (pBuf != NULL)
 	{
-		bobby = pBuf;
-		FindActors();
+		ConvServerStr = pBuf;
+		FindAndRotateNetA();
 	}
 
 }
@@ -137,8 +135,7 @@ void NewPrimeSearchTask::DoWork()
 	sockaddr_in serverHint;
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY; // Us any IP address available on the machine
 	serverHint.sin_family = AF_INET; // Address format is IPv4
-	//debug to display port for checking on netstat
-	u_short PortNumber = 12773; //catch
+	u_short PortNumber = PORT; //catch
 	int PortNumberInt = (int)PortNumber;
 	serverHint.sin_port = htons(PortNumber); // Convert from little to big endian
 
@@ -151,7 +148,7 @@ void NewPrimeSearchTask::DoWork()
 		UE_LOG(LogTemp, Warning, TEXT("Tried to close socket %i"), PortNumberInt);
 		if (bind(in, (sockaddr*)&serverHint, sizeof(serverHint)) == SOCKET_ERROR)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Socket still in use or not opened, wsacleanup might need to rebuild something.... idk aborting"));
+			UE_LOG(LogTemp, Warning, TEXT("Socket still in use or not opened... will not connect"));
 			return;
 		}
 	}
@@ -162,7 +159,6 @@ void NewPrimeSearchTask::DoWork()
 	char buf[1024];
 	for (int p = 10; p > 1; p++)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("listening..."));
 		ZeroMemory(&client, clientLength); // Clear the client structure
 		ZeroMemory(buf, 1024); // Clear the receive buffer
 
@@ -178,22 +174,17 @@ void NewPrimeSearchTask::DoWork()
 		char clientIp[256]; // Create enough space to convert the address byte array
 		ZeroMemory(clientIp, 256); // to string of characters
 
-		// Convert from byte array to chars
 		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
-		// Display the message / who sent it
 		NewPrimeSearchTask::ConvertMessage(buf);
-		//UE_LOG(LogTemp, Log, TEXT("%s"), UTF8_TO_TCHAR(buf));
 	}
 }
 
-//trying to convert on game thread
 void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 {
 	FVector IncomingVector;
 	char CheckJoinMsg[] = "serverjoin";
 	if (strcmp(buf, CheckJoinMsg) == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("serverjin found, changing to 0s"));
 		IncomingVector = FVector(0.f, 0.f, 0.f);
 	}
 	else
@@ -202,7 +193,6 @@ void NewPrimeSearchTask::ConvertMessage(char buf[1024])
 	}
 	ReturnedVector = IncomingVector;
 	WriteSharedMem(buf);
-	//AsyncTask(ENamedThreads::GameThread, [&] {EmptyFunction(FVector(0.f,0.f,0.f)});
 }
 
 void NewPrimeSearchTask::WriteSharedMem(char buf[1024])
