@@ -1,10 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
+#include <iostream>
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "NetworkRec.generated.h"
+
+//gen body may persist bc of iostream, if broken use something other than wstring
 
 UCLASS()
 class MYPROJECT2_API ANetworkRec : public AActor
@@ -14,7 +16,7 @@ class MYPROJECT2_API ANetworkRec : public AActor
 public:
 	// Sets default values for this actor's properties
 	ANetworkRec();
-	void FindAndRotateNetA();
+	void FindAndRotateNetA(wstring ConvServerStr);
 	void ConvertSharedMem();
 
 protected:
@@ -38,7 +40,6 @@ public:
 	//destructor used for manual memory cleaning for things outside ue4 scope
 	//auto call when task ends i guess
 	~NewPrimeSearchTask();
-	void ConvertMessage(char buf[1024]);
 	void WriteSharedMem(char buf[1024]);
 
 	FORCEINLINE TStatId GetStatId() const

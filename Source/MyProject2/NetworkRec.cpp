@@ -18,12 +18,11 @@ using namespace std;
 
 #define BUF_SIZE 256
 #define PORT 12773
+
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR szMsg[] = TEXT("Message from first process test2.");
-wstring ConvServerStr;
 
 TCHAR GetBuf[1024];
-FVector ReturnedVector;
 
 ANetworkRec::ANetworkRec()
 {
@@ -49,7 +48,7 @@ void ANetworkRec::RunPrimeTask()
 	(new FAutoDeleteAsyncTask<NewPrimeSearchTask>())->StartBackgroundTask();
 }
 
-void ANetworkRec::FindAndRotateNetA()
+void ANetworkRec::FindAndRotateNetA(wstring ConvServerStr)
 {
 	for (AActor* Actor : TActorRange<AActor>(GetWorld()))
 	{
@@ -97,8 +96,8 @@ void ANetworkRec::ConvertSharedMem()
 
 	if (pBuf != NULL)
 	{
-		ConvServerStr = pBuf;
-		FindAndRotateNetA();
+		wstring ConvServerStr = pBuf;
+		FindAndRotateNetA(ConvServerStr);
 	}
 
 }
@@ -175,24 +174,8 @@ void NewPrimeSearchTask::DoWork()
 		ZeroMemory(clientIp, 256); // to string of characters
 
 		inet_ntop(AF_INET, &client.sin_addr, clientIp, 256);
-		NewPrimeSearchTask::ConvertMessage(buf);
+		NewPrimeSearchTask::WriteSharedMem(buf);
 	}
-}
-
-void NewPrimeSearchTask::ConvertMessage(char buf[1024])
-{
-	FVector IncomingVector;
-	char CheckJoinMsg[] = "serverjoin";
-	if (strcmp(buf, CheckJoinMsg) == 0)
-	{
-		IncomingVector = FVector(0.f, 0.f, 0.f);
-	}
-	else
-	{
-		IncomingVector.InitFromString(buf);
-	}
-	ReturnedVector = IncomingVector;
-	WriteSharedMem(buf);
 }
 
 void NewPrimeSearchTask::WriteSharedMem(char buf[1024])
@@ -226,7 +209,7 @@ void NewPrimeSearchTask::WriteSharedMem(char buf[1024])
 			CloseHandle(hMapFile);
 		}
 		TCHAR* ConvBuf = UTF8_TO_TCHAR(buf);
-		UE_LOG(LogTemp, Warning, TEXT("sending %s to mem"), ConvBuf);
+		//UE_LOG(LogTemp, Warning, TEXT("sending %s to mem"), ConvBuf);
 		CopyMemory((PVOID)pBuf, ConvBuf, (_tcslen(ConvBuf) * sizeof(TCHAR)));
 		_getch();
 	}
